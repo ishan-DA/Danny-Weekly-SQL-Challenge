@@ -1,1 +1,1 @@
-# Danny-Weekly-SQL-Challenge
+# Danny's-Weekly-SQL-Challenge
