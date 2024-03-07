@@ -50,11 +50,7 @@ VALUES
   ('B', '2021-01-09');
 
 
-  --------------------------------------------------------------------------------------------
-
---									Case Study Questions
-
--- Each of the following case study questions can be answered using a single SQL statement:
+ ----------------------------------------------------Case Study Questions----------------------------------------------------
 
 -- 1. What is the total amount each customer spent at the restaurant?
 
