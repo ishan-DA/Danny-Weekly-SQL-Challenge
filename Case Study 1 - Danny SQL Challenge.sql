@@ -168,7 +168,6 @@ JOIN menu me ON s.product_id = me.product_id
 WHERE m.join_date > s.order_date
 GROUP BY s.customer_id;
 
-
 -- 9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
 
 SELECT
