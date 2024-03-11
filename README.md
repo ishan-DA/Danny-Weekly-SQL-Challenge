@@ -58,7 +58,7 @@ Danny wants to use the data to answer a few simple questions about his customers
 2. What if there was an additional $1 charge for any pizza extras?
       Add cheese is $1 extra
 3. The Pizza Runner team now wants to add an additional ratings system that allows customers to rate their runner, how would you design an additional table for this new dataset - generate a schema      for this new table and insert your own data for ratings for each successful customer order between 1 to 5.
-4. Using your newly generated table - can you join all of the information together to form a table which has the following information for successful deliveries?
+4. Using your newly generated table - can you join all of the information together to form a table which has the following information for successful deliveries? </br>
       customer_id
       order_id
       runner_id
