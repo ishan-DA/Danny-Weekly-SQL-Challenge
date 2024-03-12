@@ -1,4 +1,4 @@
-CREATE SCHEMA pizza_runner;
+CREATE DATABASE pizza_runner;
 
 CREATE TABLE runners (
   "runner_id" INTEGER,
