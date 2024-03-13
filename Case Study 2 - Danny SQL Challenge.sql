@@ -1,4 +1,4 @@
-CREATE DATABASE pizza_runner;
+CREATE DATABASE pizza_runners;
 
 CREATE TABLE runners (
   "runner_id" INTEGER,
@@ -19,7 +19,7 @@ CREATE TABLE customer_orders (
   "pizza_id" INTEGER,
   "exclusions" VARCHAR(4),
   "extras" VARCHAR(4),
-  "order_time" DATETIME
+  "order_time" TIMESTAMP
 );
 
 INSERT INTO customer_orders
@@ -52,34 +52,16 @@ CREATE TABLE runner_orders (
 INSERT INTO runner_orders
   ("order_id", "runner_id", "pickup_time", "distance", "duration", "cancellation")
 VALUES
-  ('1', '1', '2020-01-01 18:15:34', '20km', '32 minutes', ''),
-  ('2', '1', '2020-01-01 19:10:54', '20km', '27 minutes', ''),
-  ('3', '1', '2020-01-03 00:12:37', '13.4km', '20 mins', NULL),
-  ('4', '2', '2020-01-04 13:53:03', '23.4', '40', NULL),
-  ('5', '3', '2020-01-08 21:10:57', '10', '15', NULL),
+  ('1', '1', '2020-01-01 18:15:34', '20 km', '32 mins', ''),
+  ('2', '1', '2020-01-01 19:10:54', '20 km', '27 mins', ''),
+  ('3', '1', '2020-01-03 00:12:37', '13.4 km', '20 mins', NULL),
+  ('4', '2', '2020-01-04 13:53:03', '23.4 km', '40 mins', NULL),
+  ('5', '3', '2020-01-08 21:10:57', '10 km', '15 mins', NULL),
   ('6', '3', 'null', 'null', 'null', 'Restaurant Cancellation'),
-  ('7', '2', '2020-01-08 21:30:45', '25km', '25mins', 'null'),
-  ('8', '2', '2020-01-10 00:15:02', '23.4 km', '15 minute', 'null'),
+  ('7', '2', '2020-01-08 21:30:45', '25 km', '25 mins', 'null'),
+  ('8', '2', '2020-01-10 00:15:02', '23.4 km', '15 mins', 'null'),
   ('9', '2', 'null', 'null', 'null', 'Customer Cancellation'),
-  ('10', '1', '2020-01-11 18:50:20', '10km', '10minutes', 'null');
-
-CREATE TABLE order_ratings (
-  "rating_id" SERIAL PRIMARY KEY,
-  "order_id" INTEGER,
-  "rating" INTEGER CHECK (rating>0 AND rating<6)
-);
-
-INSERT INTO order_ratings
-  ("order_id", "rating")
-VALUES
-  (1, 4),
-  (2, 2),
-  (3, 1),
-  (4, 5),
-  (5, 5),
-  (7, 3),
-  (8, 2),
-  (10, 4);
+  ('10', '1', '2020-01-11 18:50:20', '10 km', '10 mins', 'null');
 
 CREATE TABLE pizza_names (
   "pizza_id" INTEGER,
@@ -124,6 +106,116 @@ VALUES
   (11, 'Tomatoes'),
   (12, 'Tomato Sauce');
 
+----------------------------Case Study Questions-------------------------------
 
-------------------------------------Case Study Questions------------------------------------
+------------------------------A. Pizza Metrics------------------------------
 
+  -- Q1. How many pizzas were ordered?
+
+  SELECT
+  COUNT(order_id) pizzas_ordered
+  FROM
+  customer_orders;
+
+  -- Q2. How many unique customer orders were made?
+
+  SELECT
+  COUNT (DISTINCT order_id) unique_customers_orders
+  FROM
+  customer_orders;
+
+  -- Q3. How many successful orders were delivered by each runner?
+
+  SELECT
+  runner_id,
+  COUNT(DISTINCT ro.order_id) delivered_orders
+  FROM runner_orders ro
+  WHERE pickup_time <> 'null'
+  GROUP BY runner_id;
+
+  -- Q4. How many of each type of pizza was delivered?
+
+  SELECT
+  pn.pizza_name,
+  COUNT(co.order_id)
+  FROM customer_orders co
+  JOIN pizza_names pn ON co.pizza_id = pn.pizza_id
+  JOIN runner_orders ro ON co.order_id = ro.order_id
+  WHERE pickup_time <> 'null'
+  GROUP BY pn.pizza_name;
+
+  -- Q5. How many Vegetarian and Meatlovers were ordered by each customer?
+
+  SELECT
+  co.customer_id,
+  pn.pizza_name,
+  COUNT(pn.pizza_name) pizzas_ordered
+  FROM pizza_names pn
+  JOIN customer_orders co ON pn.pizza_id = co.pizza_id
+  GROUP BY co.customer_id, pn.pizza_name
+  ORDER BY co.customer_id;
+  
+  -- Q6. What was the maximum number of pizzas delivered in a single order?
+
+  SELECT
+  co.order_id,
+  COUNT(co.pizza_id) pizzas_ordered
+  FROM
+  customer_orders co
+  JOIN runner_orders ro ON co.order_id = ro.order_id
+  WHERE ro.pickup_time NOT LIKE '%null' 
+  GROUP BY co.order_id
+  ORDER BY COUNT(co.pizza_id) DESC
+  LIMIT 1;
+  
+  -- Q7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
+
+  SELECT
+  co.customer_id,
+  SUM(CASE
+      WHEN (
+            (co.exclusions IS NOT NULL AND co.exclusions <> 'null' AND LENGTH(co.exclusions) > 0)
+            OR (co.extras IS NOT NULL AND co.extras <> 'null' AND LENGTH(co.extras) > 0)
+            ) = TRUE
+      THEN 1
+      ELSE 0
+    END) changes,
+  SUM(CASE
+      WHEN (
+            (co.exclusions IS NOT NULL AND co.exclusions <> 'null' AND LENGTH(co.exclusions) > 0)
+            OR (co.extras IS NOT NULL AND co.extras <> 'null' AND LENGTH(co.extras) > 0)
+          ) = TRUE
+      THEN 0
+      ELSE 1
+    END) no_changes 
+  FROM customer_orders co
+  JOIN runner_orders ro ON co.order_id = ro.order_id
+  WHERE ro.pickup_time <> 'null'
+  GROUP BY co.customer_id
+  ORDER BY co.customer_id;
+
+  -- Q8. How many pizzas were delivered that had both exclusions and extras?
+
+  SELECT
+  COUNT(co.pizza_id) pizzas_delivered_with_both_changes
+  FROM customer_orders co
+  JOIN runner_orders ro ON ro.order_id = co.order_id
+  WHERE ro.pickup_time <> 'null'
+  AND (co.exclusions IS NOT NULL AND co.exclusions <> 'null' AND LENGTH(co.exclusions) > 0)
+  AND (co.extras IS NOT NULL AND co.extras <> 'null' AND LENGTH(co.extras) > 0);
+
+  -- Q9. What was the total volume of pizzas ordered for each hour of the day?
+
+  SELECT
+  DATE_PART('hour', order_time),
+  COUNT(pizza_id) pizzas_ordered_per_hour
+  FROM  customer_orders
+  GROUP BY DATE_PART('hour', order_time);
+
+  -- Q10. What was the volume of orders for each day of the week?
+
+  SELECT
+  to_char(order_time, 'Dy'),
+  COUNT(pizza_id) pizzas_ordered
+  FROM customer_orders
+  GROUP BY DATE_PART('dow', order_time), to_char(order_time, 'Dy');
